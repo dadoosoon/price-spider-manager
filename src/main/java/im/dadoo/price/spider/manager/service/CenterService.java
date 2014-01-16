@@ -10,9 +10,12 @@ import im.dadoo.price.core.domain.Link;
 import im.dadoo.price.core.domain.Record;
 import im.dadoo.price.core.service.LinkService;
 import im.dadoo.price.core.service.RecordService;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import org.apache.commons.math3.random.RandomDataGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,7 +51,7 @@ public class CenterService {
         Link item = CenterService.saveSet.first();
         return item;
       } else {
-        CenterService.selectSet.addAll(this.linkService.list());
+        CenterService.selectSet.addAll(this.disorder(this.linkService.list()));
         Link item = CenterService.selectSet.last();
         CenterService.selectSet.remove(item);
         CenterService.saveSet.add(item);
@@ -74,5 +77,15 @@ public class CenterService {
   
   public Integer getSaveSetSize() {
     return CenterService.saveSet.size();
+  }
+  
+  public List<Link> disorder(List<Link> links) {
+    RandomDataGenerator rdg = new RandomDataGenerator();
+		List<Link> result = new ArrayList<>(links.size());
+		int[] p = rdg.nextPermutation(links.size(), links.size());
+		for (int i = 0; i < p.length; i++) {
+			result.add(links.get(p[i]));
+		}
+		return result;
   }
 }
