@@ -40,8 +40,8 @@ public class CenterController {
   public Link select() {
     Link link = this.centerService.select();
     logger.info(String.format("请求:未发送队列还剩%d,未处理队列还剩%d", 
-            this.centerService.getSelectSetSize(), 
-            this.centerService.getSaveSetSize()));
+            this.centerService.getPreLinksSize(), 
+            this.centerService.getProMapSize()));
     return link;
   }
   
@@ -53,8 +53,8 @@ public class CenterController {
       Record r = this.mapper.readValue(record, Record.class);
       b = this.centerService.save(r);
       logger.info(String.format("保存:未发送队列还剩%d,未处理队列还剩%d", 
-            this.centerService.getSelectSetSize(), 
-            this.centerService.getSaveSetSize()));
+            this.centerService.getPreLinksSize(), 
+            this.centerService.getProMapSize()));
     } catch (IOException e) {
       e.printStackTrace();
     }

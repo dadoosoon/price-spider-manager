@@ -12,9 +12,10 @@ import im.dadoo.price.core.service.LinkService;
 import im.dadoo.price.core.service.RecordService;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.Map;
 import org.apache.commons.math3.random.RandomDataGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,51 +33,54 @@ public class CenterService {
   @Autowired
   private RecordService recordService;
   
-  //初始未被发送的linkid队列
-  private static final SortedSet<Link> selectSet = 
-          (SortedSet<Link>)Collections.synchronizedSortedSet(new TreeSet<Link>());
+  private static final List<Link> preLinks = Collections.synchronizedList(new LinkedList<Link>());
+
+  private static final Map<Integer, Link> proMap = 
+          Collections.synchronizedMap(new HashMap<Integer, Link>());
   
-  //已经被发送但采集尚未返回的set
-  private static final SortedSet<Link> saveSet = 
-          (SortedSet<Link>)Collections.synchronizedSortedSet(new TreeSet<Link>());
   
   public Link select() {
-    if (!CenterService.selectSet.isEmpty()) {
-      Link item = CenterService.selectSet.last();
-      CenterService.selectSet.remove(item);
-      CenterService.saveSet.add(item);
-      return item;
+    Link link = null;
+    if (!CenterService.preLinks.isEmpty()) {
+      link = CenterService.preLinks.get(0);
+      CenterService.preLinks.remove(0);
+      CenterService.proMap.put(link.getId(), link);
+      return link;
     } else {
-      if (!CenterService.saveSet.isEmpty()) {
-        Link item = CenterService.saveSet.first();
-        return item;
+      if (!CenterService.proMap.isEmpty()) {
+        for (Map.Entry<Integer, Link> entry : CenterService.proMap.entrySet()) {
+          link = entry.getValue();
+          break;
+        }
+        return link;
       } else {
-        CenterService.selectSet.addAll(this.disorder(this.linkService.list()));
-        Link item = CenterService.selectSet.last();
-        CenterService.selectSet.remove(item);
-        CenterService.saveSet.add(item);
-        return item;
+        CenterService.preLinks.addAll(this.disorder(this.linkService.list()));
+        CenterService.proMap.clear();
+        link = CenterService.preLinks.get(0);
+        CenterService.preLinks.remove(0);
+        CenterService.proMap.put(link.getId(), link);
+        return link;
       }
     }
   }
   
   public Boolean save(Record record) {
     Link link = record.getLink();
-    if (CenterService.saveSet.contains(link)) {
+    if (CenterService.proMap.containsKey(link.getId())) {
       this.recordService.save(record.getLink(), record.getPrice(), record.getStock());
-      CenterService.saveSet.remove(link);
+      CenterService.proMap.remove(link.getId());
       return true;
     } else {
       return false;
     }
   }
   
-  public Integer getSelectSetSize() {
-    return CenterService.selectSet.size();
+  public Integer getPreLinksSize() {
+    return CenterService.preLinks.size();
   }
   
-  public Integer getSaveSetSize() {
-    return CenterService.saveSet.size();
+  public Integer getProMapSize() {
+    return CenterService.proMap.size();
   }
   
   public List<Link> disorder(List<Link> links) {
