@@ -45,23 +45,20 @@ public class CenterService {
       link = CenterService.preLinks.get(0);
       CenterService.preLinks.remove(0);
       CenterService.proMap.put(link.getId(), link);
-      return link;
     } else {
       if (!CenterService.proMap.isEmpty()) {
         for (Map.Entry<Integer, Link> entry : CenterService.proMap.entrySet()) {
           link = entry.getValue();
           break;
         }
-        return link;
       } else {
         CenterService.preLinks.addAll(this.disorder(this.linkService.list()));
         CenterService.proMap.clear();
         link = CenterService.preLinks.get(0);
         CenterService.preLinks.remove(0);
-        CenterService.proMap.put(link.getId(), link);
-        return link;
       }
     }
+    return link;
   }
   
   public Boolean save(Record record) {
