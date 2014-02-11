@@ -64,7 +64,7 @@ public class CenterService {
   public Boolean save(Record record) {
     Link link = record.getLink();
     if (CenterService.proMap.containsKey(link.getId())) {
-      this.recordService.save(record.getLink(), record.getPrice(), record.getStock());
+      this.recordService.save(link, record.getPrice(), record.getStock(), record.getPromotion());
       CenterService.proMap.remove(link.getId());
       return true;
     } else {

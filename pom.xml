@@ -4,7 +4,7 @@
 
     <groupId>im.dadoo</groupId>
     <artifactId>price-spider-manager</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.3</version>
     <packaging>war</packaging>
 
     <name>price-spider-manager</name>
@@ -44,7 +44,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>price-core</artifactId>
-            <version>0.0.2</version>
+            <version>0.0.3</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
