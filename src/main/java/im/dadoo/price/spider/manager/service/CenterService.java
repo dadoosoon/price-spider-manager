@@ -8,16 +8,17 @@ package im.dadoo.price.spider.manager.service;
 
 import im.dadoo.price.core.domain.Link;
 import im.dadoo.price.core.domain.Record;
+import im.dadoo.price.core.domain.Seller;
 import im.dadoo.price.core.service.LinkService;
 import im.dadoo.price.core.service.RecordService;
-import java.util.ArrayList;
-import java.util.Collections;
+import im.dadoo.price.core.service.SellerService;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.math3.random.RandomDataGenerator;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentSkipListSet;
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,66 +28,72 @@ import org.springframework.stereotype.Component;
 @Component
 public class CenterService {
   
-  @Autowired
+  @Resource
   private LinkService linkService;
   
-  @Autowired
+  @Resource
   private RecordService recordService;
   
-  private static final List<Link> preLinks = Collections.synchronizedList(new LinkedList<Link>());
-
-  private static final Map<Integer, Link> proMap = 
-          Collections.synchronizedMap(new HashMap<Integer, Link>());
+  @Resource
+  private SellerService sellerService;
   
+  private Map<Integer, ConcurrentLinkedQueue<Link>> preMap;
+  private Map<Integer, ConcurrentSkipListSet<Link>> proMap;
   
-  public Link select() {
-    Link link = null;
-    if (!CenterService.preLinks.isEmpty()) {
-      link = CenterService.preLinks.get(0);
-      CenterService.preLinks.remove(0);
-      CenterService.proMap.put(link.getId(), link);
+  @PostConstruct
+  public void init() {
+    this.preMap = new HashMap<>();
+    this.proMap = new HashMap<>();
+    List<Seller> sellers = this.sellerService.list();
+    for (Seller seller : sellers) {
+      ConcurrentLinkedQueue<Link> queue = new ConcurrentLinkedQueue<>();
+      ConcurrentSkipListSet<Link> set = new ConcurrentSkipListSet<>();
+      this.preMap.put(seller.getId(), queue);
+      this.proMap.put(seller.getId(), set);
+    }
+  }
+  
+  public Link select(Integer id) {
+    Link link;
+    ConcurrentLinkedQueue<Link> queue = this.preMap.get(id);
+    ConcurrentSkipListSet<Link> set = this.proMap.get(id);
+    if (!queue.isEmpty()) {
+      link = queue.poll();
+      set.add(link);
     } else {
-      if (!CenterService.proMap.isEmpty()) {
-        for (Map.Entry<Integer, Link> entry : CenterService.proMap.entrySet()) {
-          link = entry.getValue();
-          break;
-        }
+      if (!set.isEmpty()) {
+        link = set.first();
       } else {
-        CenterService.preLinks.addAll(this.disorder(this.linkService.list()));
-        CenterService.proMap.clear();
-        link = CenterService.preLinks.get(0);
-        CenterService.preLinks.remove(0);
+        queue.addAll(this.linkService.listBySellerId(id));
+        link = queue.poll();
+        set.add(link);
       }
     }
     return link;
   }
   
-  public Boolean save(Record record) {
-    Link link = record.getLink();
-    if (CenterService.proMap.containsKey(link.getId())) {
-      this.recordService.save(link, record.getPrice(), record.getStock(), record.getPromotion());
-      CenterService.proMap.remove(link.getId());
-      return true;
+  public Boolean save(Integer sellerId, Record record) {
+    ConcurrentSkipListSet<Link> set = this.proMap.get(sellerId);
+    if (!set.isEmpty()) {
+      for (Link link : set) {
+        if (link.getId().equals(record.getLinkId())) {
+//          this.recordService.save(link, 
+//                  record.getPrice(), record.getStock(), record.getPromotion());
+          set.remove(link);
+          return true;
+        }
+      }
+      return false;
     } else {
       return false;
     }
   }
   
-  public Integer getPreLinksSize() {
-    return CenterService.preLinks.size();
+  public Integer getPreSize(Integer sellerId) {
+    return this.preMap.get(sellerId).size();
   }
   
-  public Integer getProMapSize() {
-    return CenterService.proMap.size();
-  }
-  
-  public List<Link> disorder(List<Link> links) {
-    RandomDataGenerator rdg = new RandomDataGenerator();
-		List<Link> result = new ArrayList<>(links.size());
-		int[] p = rdg.nextPermutation(links.size(), links.size());
-		for (int i = 0; i < p.length; i++) {
-			result.add(links.get(p[i]));
-		}
-		return result;
+  public Integer getProSize(Integer sellerId) {
+    return this.proMap.get(sellerId).size();
   }
 }
