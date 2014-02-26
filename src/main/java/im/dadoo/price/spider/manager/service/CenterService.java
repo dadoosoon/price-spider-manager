@@ -57,6 +57,19 @@ public class CenterService {
     Link link;
     ConcurrentLinkedQueue<Link> queue = this.preMap.get(id);
     ConcurrentSkipListSet<Link> set = this.proMap.get(id);
+    //为了防止有新的seller加入
+    if (queue == null) {
+      List<Link> links = this.linkService.listBySellerId(id);
+      if (links != null && !links.isEmpty()) {
+        queue = new ConcurrentLinkedQueue<>();
+        set = new ConcurrentSkipListSet<>();
+        queue.addAll(links);
+        this.preMap.put(id, queue);
+        this.proMap.put(id, set);
+      } else {
+        return null;
+      }
+    }
     if (!queue.isEmpty()) {
       link = queue.poll();
       set.add(link);
@@ -77,8 +90,8 @@ public class CenterService {
     if (!set.isEmpty()) {
       for (Link link : set) {
         if (link.getId().equals(record.getLinkId())) {
-//          this.recordService.save(link, 
-//                  record.getPrice(), record.getStock(), record.getPromotion());
+          this.recordService.save(link, 
+                  record.getPrice(), record.getStock(), record.getPromotion());
           set.remove(link);
           return true;
         }
