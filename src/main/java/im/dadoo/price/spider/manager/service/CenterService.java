@@ -90,8 +90,11 @@ public class CenterService {
     if (!set.isEmpty()) {
       for (Link link : set) {
         if (link.getId().equals(record.getLinkId())) {
-          this.recordService.save(link, 
-                  record.getPrice(), record.getStock(), record.getPromotion());
+          //避免易迅网页返回404
+          if (record.getPrice() != null || record.getStock() == 0) {
+            this.recordService.save(link, 
+                    record.getPrice(), record.getStock(), record.getPromotion());
+          }
           set.remove(link);
           return true;
         }

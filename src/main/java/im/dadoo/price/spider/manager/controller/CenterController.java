@@ -40,7 +40,8 @@ public class CenterController {
   @ResponseBody
   public Link select(@PathVariable Integer sellerId) {
     Link link = this.centerService.select(sellerId);
-    logger.info(String.format("请求:未发送队列还剩%d,未处理队列还剩%d", 
+    logger.info(String.format("请求:电商%d,未发送队列还剩%d,未处理队列还剩%d", 
+            sellerId,
             this.centerService.getPreSize(sellerId), 
             this.centerService.getProSize(sellerId)));
     return link;
@@ -53,7 +54,8 @@ public class CenterController {
     try {
       Record r = this.mapper.readValue(record, Record.class);
       b = this.centerService.save(sellerId, r);
-      logger.info(String.format("保存:未发送队列还剩%d,未处理队列还剩%d", 
+      logger.info(String.format("保存:电商%d,未发送队列还剩%d,未处理队列还剩%d", 
+            sellerId,
             this.centerService.getPreSize(sellerId), 
             this.centerService.getProSize(sellerId)));
     } catch (IOException e) {
