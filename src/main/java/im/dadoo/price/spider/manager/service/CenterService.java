@@ -53,19 +53,19 @@ public class CenterService {
     }
   }
   
-  public Link select(Integer id) {
+  public Link allocate(Integer sellerId) {
     Link link;
-    ConcurrentLinkedQueue<Link> queue = this.preMap.get(id);
-    ConcurrentSkipListSet<Link> set = this.proMap.get(id);
+    ConcurrentLinkedQueue<Link> queue = this.preMap.get(sellerId);
+    ConcurrentSkipListSet<Link> set = this.proMap.get(sellerId);
     //为了防止有新的seller加入
     if (queue == null) {
-      List<Link> links = this.linkService.listBySellerId(id);
+      List<Link> links = this.linkService.listBySellerId(sellerId);
       if (links != null && !links.isEmpty()) {
         queue = new ConcurrentLinkedQueue<>();
         set = new ConcurrentSkipListSet<>();
         queue.addAll(links);
-        this.preMap.put(id, queue);
-        this.proMap.put(id, set);
+        this.preMap.put(sellerId, queue);
+        this.proMap.put(sellerId, set);
       } else {
         return null;
       }
@@ -77,7 +77,7 @@ public class CenterService {
       if (!set.isEmpty()) {
         link = set.first();
       } else {
-        queue.addAll(this.linkService.listBySellerId(id));
+        queue.addAll(this.linkService.listBySellerId(sellerId));
         link = queue.poll();
         set.add(link);
       }
@@ -85,7 +85,7 @@ public class CenterService {
     return link;
   }
   
-  public Boolean save(Integer sellerId, Record record) {
+  public Boolean handover(Integer sellerId, Record record) {
     ConcurrentSkipListSet<Link> set = this.proMap.get(sellerId);
     if (!set.isEmpty()) {
       for (Link link : set) {
