@@ -8,7 +8,7 @@ package im.dadoo.price.spider.manager.controller;
 
 import im.dadoo.price.core.domain.Link;
 import im.dadoo.price.core.domain.Record;
-import im.dadoo.price.spider.manager.service.CenterService;
+import im.dadoo.price.spider.manager.service.ManagerService;
 import java.io.IOException;
 import javax.annotation.Resource;
 import org.slf4j.Logger;
@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
@@ -26,12 +25,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author codekitten
  */
 @Controller
-public class CenterController {
+public class ManagerController {
   
-  private static final Logger logger = LoggerFactory.getLogger(CenterController.class);
+  private static final Logger logger = LoggerFactory.getLogger(ManagerController.class);
   
   @Resource
-  private CenterService centerService;
+  private ManagerService centerService;
   
   @RequestMapping(value = "/seller/{sellerId}", method = RequestMethod.GET)
   @ResponseBody

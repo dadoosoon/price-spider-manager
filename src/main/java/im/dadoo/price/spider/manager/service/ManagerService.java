@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
  * @author codekitten
  */
 @Component
-public class CenterService {
+public class ManagerService {
   
   @Resource
   private LinkService linkService;
