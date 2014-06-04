@@ -7,9 +7,12 @@
 package im.dadoo.price.spider.manager.service;
 
 import im.dadoo.price.core.domain.Link;
+import im.dadoo.price.core.domain.Product;
 import im.dadoo.price.core.domain.Record;
 import im.dadoo.price.core.domain.Seller;
+import im.dadoo.price.core.domain.util.Pair;
 import im.dadoo.price.core.service.LinkService;
+import im.dadoo.price.core.service.ProductService;
 import im.dadoo.price.core.service.RecordService;
 import im.dadoo.price.core.service.SellerService;
 import java.util.HashMap;
@@ -30,6 +33,9 @@ public class ManagerService {
   
   @Resource
   private LinkService linkService;
+  
+  @Resource
+  private ProductService productService;
   
   @Resource
   private RecordService recordService;
@@ -53,8 +59,8 @@ public class ManagerService {
     }
   }
   
-  public Link allocate(Integer sellerId) {
-    Link link;
+  public Pair<Link, Product> allocate(Integer sellerId) {
+    Link link = null;
     ConcurrentLinkedQueue<Link> queue = this.preMap.get(sellerId);
     ConcurrentSkipListSet<Link> set = this.proMap.get(sellerId);
     //为了防止有新的seller加入
@@ -82,7 +88,11 @@ public class ManagerService {
         set.add(link);
       }
     }
-    return link;
+    if (link != null) {
+      return new Pair(link, this.productService.findById(link.getProductId()));
+    } else {
+      return null;
+    }
   }
   
   public Boolean handover(Integer sellerId, Record record) {

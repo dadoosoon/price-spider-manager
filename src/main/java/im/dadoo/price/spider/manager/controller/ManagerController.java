@@ -7,9 +7,14 @@
 package im.dadoo.price.spider.manager.controller;
 
 import im.dadoo.price.core.domain.Link;
+import im.dadoo.price.core.domain.Product;
 import im.dadoo.price.core.domain.Record;
+import im.dadoo.price.core.domain.Seller;
+import im.dadoo.price.core.domain.util.Pair;
+import im.dadoo.price.core.service.SellerService;
 import im.dadoo.price.spider.manager.service.ManagerService;
 import java.io.IOException;
+import java.util.List;
 import javax.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,15 +37,24 @@ public class ManagerController {
   @Resource
   private ManagerService centerService;
   
+  @Resource
+  private SellerService sellerService;
+  
+  @RequestMapping(value = "/sellers", method = RequestMethod.GET)
+  @ResponseBody
+  public List<Seller> list() {
+    return this.sellerService.list();
+  }
+  
   @RequestMapping(value = "/seller/{sellerId}", method = RequestMethod.GET)
   @ResponseBody
-  public Link allocate(@PathVariable Integer sellerId) {
-    Link link = this.centerService.allocate(sellerId);
+  public Pair<Link, Product> allocate(@PathVariable Integer sellerId) {
+    Pair<Link, Product> pair = this.centerService.allocate(sellerId);
     logger.info(String.format("请求:电商%d,未发送队列还剩%d,未处理队列还剩%d", 
             sellerId,
             this.centerService.getPreSize(sellerId), 
             this.centerService.getProSize(sellerId)));
-    return link;
+    return pair;
   }
   
   @RequestMapping(value = "/seller/{sellerId}", method = RequestMethod.POST)
